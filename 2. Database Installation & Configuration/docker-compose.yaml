@@ -1,0 +1,23 @@
+services:
+  sls-db-server:
+    image: postgres:17.5-bullseye
+    container_name: sls-db-server
+    environment:
+      POSTGRES_USER: slsusr
+      POSTGRES_PASSWORD: sls@168
+    ports:
+      - "5168:5432"
+    volumes:
+      - ./init_scripts/postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+      - sls-db-server-vol:/var/lib/postgresql/data
+    networks:
+      - dbserver-net
+
+# Create docker volume   
+volumes:
+  sls-db-server-vol:
+
+# Bind network
+networks:
+  dbserver-net:
+    external: true
