@@ -60,9 +60,38 @@ CREATE TABLE payroll (
                          paid_at             TIMESTAMP
 );
 
+-- 6. Attendance
+CREATE TABLE attendance (
+                            attendance_id   SERIAL PRIMARY KEY,
+                            employee_id     INT REFERENCES employees(employee_id),
+                            work_date       DATE NOT NULL,
+                            check_in        TIME,
+                            check_out       TIME,
+                            status          VARCHAR(20) CHECK (status IN ('present', 'absent', 'late', 'half-day'))
+);
+
+-- 7. Leave Types
+CREATE TABLE leave_types (
+                             leave_type_id   SERIAL PRIMARY KEY,
+                             type_name       VARCHAR(50) NOT NULL, -- e.g. Sick, Vacation, Maternity
+                             max_days        INT
+);
+
+-- 8. Leave Requests
+CREATE TABLE leave_requests (
+                                leave_id        SERIAL PRIMARY KEY,
+                                employee_id     INT REFERENCES employees(employee_id),
+                                leave_type_id   INT REFERENCES leave_types(leave_type_id),
+                                start_date      DATE NOT NULL,
+                                end_date        DATE NOT NULL,
+                                reason          TEXT,
+                                status          VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+                                approved_by     INT REFERENCES employees(employee_id)
+);
+
 
 -- setting up the user and permissions
-
+    SET ROLE slsusr;
 -- =============================
 -- STEP 1: Create Roles
 -- =============================
@@ -78,7 +107,7 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO hr_manager;
 
 -- ✅ HR Staff: manage core HR only, cannot touch payroll
 GRANT SELECT, INSERT, UPDATE ON TABLE
-    departments, positions, employees
+  attendance,leave_types,leave_types,  departments, positions, employees
     TO hr_staff;
 REVOKE ALL ON TABLE salary_history, payroll FROM hr_staff;
 
@@ -92,7 +121,7 @@ REVOKE ALL ON TABLE departments, positions FROM payroll_officer;
 
 -- ✅ Read-only Viewer: can only SELECT (for auditors/executives)
 GRANT SELECT ON TABLE
-    departments, positions, employees,
+ attendance,leave_types,leave_requests,   departments, positions, employees,
     salary_history, payroll
     TO readonly_viewer;
 
@@ -112,7 +141,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO payroll_officer;
 -- =============================
 GRANT hr_manager TO slsusr;
 
-SELECT * FROM departments;
+SELECT * FROM attendance;
 INSERT INTO departments (department_name, location) VALUES ('Human Resources', 'New York');
 
 
@@ -127,6 +156,10 @@ CREATE USER sarah_staff WITH PASSWORD 'Staff@123';
 
 -- User for Payroll Officer
 CREATE USER mike_payroll WITH PASSWORD 'Payroll@123';
+
+SELECT * FROM departments;
+SELECT * FROM employees;
+
 
 
 -- Granting roles to users
@@ -149,18 +182,21 @@ SELECT
 FROM pg_roles r
          JOIN pg_auth_members am ON r.oid = am.roleid
          JOIN pg_roles m ON am.member = m.oid
-WHERE r.rolname IN ('hr_manager', 'hr_staff','lisa_viewer')ើ
+WHERE r.rolname IN ('hr_manager', 'hr_staff','lisa_viewer','lisa_viewer');
 
 -- Connect as john_manager
 SET ROLE john_manager;
 
 INSERT INTO departments (department_name, location)
-VALUES ('Engineering', 'Building A');
+VALUES ('Computer Scient', 'Building A');
 
 SELECT * FROM departments;
+
 DELETE FROM departments WHERE department_name = 'Engineering';
 
 -- Connect as sarah_staff
 SET ROLE sarah_staff;
 --  cannot select payroll
 SELECT * FROM payroll;
+
+SET ROLE lisa_viewer;

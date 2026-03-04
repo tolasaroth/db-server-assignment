@@ -39,17 +39,6 @@ CREATE DATABASE employee_db
 
 ---
 
-## Schema Overview
-
-```
-departments
-    └── positions
-            └── employees
-                    ├── salary_history
-                    └── payroll
-```
-
----
 
 ## Tables
 
@@ -117,6 +106,44 @@ departments
 | `paid_at` | TIMESTAMP | When payment was processed |
 
 ---
+
+### 6. `attendance`
+
+
+| Column          | Type          | Description                        |
+|-----------------|---------------|------------------------------------|
+| `attendance_id` | SERIAL PK     | Auto-generated ID                  |
+| `employee_id`   | INT FK        | References `employees`             |
+| `work_date`     | DATE          | data work                          |
+| `check_in`      | time          | chech in time                      |
+| `check_out`     | time          | Check out time                     |
+| `status `       | VARCHAR(20)    | Status of attendance               |
+
+
+
+### 7. `leave_types`
+
+| Column          | Type          | Description       |
+|-----------------|---------------|-------------------|
+| `leave_type_id` | SERIAL PK     | Auto-generated ID |
+| `type_name`     | INT FK        | Name of leave     |
+| `max_days`      | DATE          | Maximum days      |
+
+
+# 7. leave_requests
+| Column | Type | Description |
+|--------|------|-------------|
+| `leave_id` | SERIAL PK | Auto-generated unique leave request ID |
+| `employee_id` | INT FK | References the employee submitting the request |
+| `leave_type_id` | INT FK | References the type of leave being requested |
+| `start_date` | DATE | Start date of the leave |
+| `end_date` | DATE | End date of the leave |
+| `reason` | TEXT | Reason provided by the employee |
+| `status` | VARCHAR(20) | Current status of the request (default: `'pending'`) |
+| `approved_by` | INT FK | References the approver (manager/admin) |
+
+---
+
 
 ## Roles & Permissions
 
